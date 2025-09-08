@@ -6,8 +6,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,10 +17,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.HttpURLConnection
-import java.net.URLEncoder
 import java.net.URL
 
 data class Joke(
@@ -33,23 +35,24 @@ data class Joke(
 fun CategoryPage(navController: NavHostController) {
     val categories = listOf("general", "knock-knock", "programming")
 
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var jokes by remember { mutableStateOf<List<Joke>>(emptyList()) }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+    var jokes by rememberSaveable { mutableStateOf<List<Joke>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(selectedCategory) {
-        selectedCategory?.let { cat ->
-            isLoading = true
-            error = null
-            jokes = try {
-                fetchJokes(cat)
-            } catch (e: Exception) {
-                error = e.localizedMessage ?: "Failed to load jokes."
-                emptyList()
-            }
-            isLoading = false
+    val scope = rememberCoroutineScope()
+
+    suspend fun loadJokes(category: String) {
+        isLoading = true
+        error = null
+        jokes = emptyList()
+        jokes = try {
+            fetchJokes(category)
+        } catch (e: Exception) {
+            error = e.localizedMessage ?: "Failed to load jokes."
+            emptyList()
         }
+        isLoading = false
     }
 
     Surface(
@@ -62,6 +65,7 @@ fun CategoryPage(navController: NavHostController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Top bar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -80,6 +84,20 @@ fun CategoryPage(navController: NavHostController) {
                     color = Color.White,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                if (selectedCategory != null) {
+                    IconButton(onClick = {
+                        selectedCategory?.let { cat ->
+                            scope.launch { loadJokes(cat) }
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = "Refresh",
+                            tint = Color.White
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.weight(1f))
             }
 
@@ -94,7 +112,12 @@ fun CategoryPage(navController: NavHostController) {
                 categories.forEach { cat ->
                     FilterChip(
                         selected = selectedCategory == cat,
-                        onClick = { selectedCategory = cat },
+                        onClick = {
+                            if (selectedCategory != cat) {
+                                selectedCategory = cat
+                                scope.launch { loadJokes(cat) }
+                            }
+                        },
                         label = { Text(cat.replaceFirstChar { it.uppercase() }) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Color.White,
@@ -144,9 +167,9 @@ fun CategoryPage(navController: NavHostController) {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            val setupEncoded = URLEncoder.encode(joke.setup, "UTF-8")
-                                            val punchEncoded = URLEncoder.encode(joke.punchline, "UTF-8")
-                                            navController.navigate("details/$setupEncoded/$punchEncoded")
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("jokes", jokes)
+                                            val index = jokes.indexOf(joke)
+                                            navController.navigate("details/$index")
                                         }
                                         .padding(16.dp)
                                 ) {

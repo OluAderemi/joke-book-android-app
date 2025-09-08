@@ -14,11 +14,22 @@ fun AppNavHost(navController: NavHostController) {
         startDestination = "cover"
     ) {
         composable("cover") { CoverPage(navController) }
+
         composable("categories") { CategoryPage(navController) }
-        composable("details/{setup}/{punchline}") { backStackEntry ->
-            val setup = backStackEntry.arguments?.getString("setup") ?: ""
-            val punchline = backStackEntry.arguments?.getString("punchline") ?: ""
-            JokeDetailPage(setup, punchline, navController)
+
+        composable("details/{index}") { backStackEntry ->
+            val index = backStackEntry.arguments?.getString("index")?.toIntOrNull() ?: 0
+
+            val jokes = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<List<com.example.jokebook.ui.theme.Joke>>("jokes")
+                ?: emptyList()
+
+            JokeDetailPage(
+                jokes = jokes,
+                startIndex = index,
+                navController = navController
+            )
         }
     }
 }
