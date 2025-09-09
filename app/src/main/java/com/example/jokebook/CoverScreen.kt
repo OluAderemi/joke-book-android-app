@@ -3,25 +3,44 @@ package com.example.jokebook
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.*
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.lifecycleScope
+import com.example.jokebook.ui.theme.JokeBookTheme
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class CoverScreen : ComponentActivity() {
+    private lateinit var themePrefs: ThemePreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            JokeBookApp()
-        }
-    }
-}
+        themePrefs = ThemePreferences(this)
 
-@Composable
-fun JokeBookApp() {
-    val navController = rememberNavController()
-    AppNavHost(navController = navController)
+        setContent {
+            val navController = rememberNavController()
+
+            var isDarkTheme by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                themePrefs.isDarkMode.collectLatest { savedDarkMode ->
+                    isDarkTheme = savedDarkMode
+                }
+            }
+
+            JokeBookTheme(isDarkTheme = isDarkTheme) {
+                AppNavHost(
+                    navController = navController,
+                    isDarkTheme = isDarkTheme,
+                    onThemeToggle = {
+                        isDarkTheme = !isDarkTheme
+                        lifecycleScope.launch {
+                            themePrefs.setDarkMode(isDarkTheme)
+                        }
+                    }
+                )
+            }
+        }
+
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.jokebook.ui.theme
+package com.example.jokebook
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -32,7 +31,8 @@ data class Joke(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryPage(navController: NavHostController) {
+fun CategoryPage(navController: NavHostController,
+                 isDarkTheme: Boolean ) {
     val categories = listOf("general", "knock-knock", "programming")
 
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
@@ -57,7 +57,7 @@ fun CategoryPage(navController: NavHostController) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFADD8E6)
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
@@ -65,7 +65,6 @@ fun CategoryPage(navController: NavHostController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top bar
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -74,14 +73,14 @@ fun CategoryPage(navController: NavHostController) {
                     Icon(
                         imageVector = Icons.Filled.Home,
                         contentDescription = "Home",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "Pick a Joke Category",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -94,7 +93,7 @@ fun CategoryPage(navController: NavHostController) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
                             contentDescription = "Refresh",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -120,10 +119,10 @@ fun CategoryPage(navController: NavHostController) {
                         },
                         label = { Text(cat.replaceFirstChar { it.uppercase() }) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color.White,
-                            selectedLabelColor = Color(0xFFADD8E6),
-                            containerColor = Color.White.copy(alpha = 0.8f),
-                            labelColor = Color(0xFFADD8E6)
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -137,7 +136,7 @@ fun CategoryPage(navController: NavHostController) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(color = Color.White) }
+                    ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                 }
                 error != null -> {
                     Text(
@@ -148,7 +147,7 @@ fun CategoryPage(navController: NavHostController) {
                 selectedCategory == null -> {
                     Text(
                         text = "Pick a category to load jokes.",
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 else -> {
@@ -160,7 +159,7 @@ fun CategoryPage(navController: NavHostController) {
                             Surface(
                                 tonalElevation = 2.dp,
                                 shape = MaterialTheme.shapes.medium,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(
@@ -176,7 +175,7 @@ fun CategoryPage(navController: NavHostController) {
                                     Text(
                                         text = joke.setup,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = Color(0xFF0A3D62),
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -189,6 +188,7 @@ fun CategoryPage(navController: NavHostController) {
         }
     }
 }
+
 
 suspend fun fetchJokes(category: String): List<Joke> = withContext(Dispatchers.IO) {
     val endpoint = "https://official-joke-api.appspot.com/jokes/$category/ten"

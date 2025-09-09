@@ -1,4 +1,4 @@
-package com.example.jokebook.ui.theme
+package com.example.jokebook
 
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -22,6 +21,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun JokeDetailPage(
     navController: NavHostController,
+    isDarkTheme: Boolean,
     jokes: List<Joke>,
     startIndex: Int
 ) {
@@ -40,11 +40,10 @@ fun JokeDetailPage(
                     if (dragAmount < 0 && currentIndex < jokes.lastIndex) currentIndex++
                 }
             },
-        color = Color(0xFFB3E5FC)
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // Home Button
             IconButton(
                 onClick = { navController.navigate("cover") },
                 modifier = Modifier.align(Alignment.TopStart)
@@ -52,11 +51,10 @@ fun JokeDetailPage(
                 Icon(
                     imageVector = Icons.Filled.Home,
                     contentDescription = "Home",
-                    tint = Color(0xFF0A3D62)
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
-            // Joke content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -67,25 +65,24 @@ fun JokeDetailPage(
                 Text(
                     text = decodedSetup,
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color(0xFF0A3D62)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = decodedPunchline,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF0A3D62)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
                     onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Back to List", color = Color(0xFF0A3D62))
+                    Text("Back to List", color = MaterialTheme.colorScheme.onSecondary)
                 }
             }
 
-            // Back Arrow
             if (currentIndex > 0) {
                 IconButton(
                     onClick = { currentIndex-- },
@@ -96,12 +93,11 @@ fun JokeDetailPage(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Previous Joke",
-                        tint = Color(0xFF0A3D62)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
 
-            // Forward Arrow
             if (currentIndex < jokes.lastIndex) {
                 IconButton(
                     onClick = { currentIndex++ },
@@ -112,7 +108,7 @@ fun JokeDetailPage(
                     Icon(
                         imageVector = Icons.Filled.ArrowForward,
                         contentDescription = "Next Joke",
-                        tint = Color(0xFF0A3D62)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
